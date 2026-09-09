@@ -124,7 +124,7 @@ html {
     transform: none;
   }
   .pipe-node rect,
-  .pipe-node.is-lit,
+  .pipe-node.is-lit rect,
   .arch-node--pulse rect { animation: none !important; filter: none !important; }
   .hero__photo-wrap::before,
   .hero__photo-wrap::after,
@@ -1423,6 +1423,10 @@ html:not(.js-gsap) .skill-bar.is-animated span {
   stroke: #93c5fd;
   stroke-width: 1.8;
   filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.75));
+  /* Scale rect only — never transform the <g> (overrides SVG translate → jump to 0,0) */
+  animation: pipe-node-pop 0.45s var(--ease);
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .pipe-node--loop.is-lit rect {
@@ -1430,15 +1434,9 @@ html:not(.js-gsap) .skill-bar.is-animated span {
   filter: drop-shadow(0 0 8px rgba(246, 130, 31, 0.7));
 }
 
-.pipe-node.is-lit {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: pipe-node-pop 0.45s var(--ease);
-}
-
 @keyframes pipe-node-pop {
   0% { transform: scale(1); }
-  40% { transform: scale(1.06); }
+  40% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
@@ -1538,21 +1536,20 @@ html:not(.js-gsap) .skill-bar.is-animated span {
   .pipeline__path {
     filter: none;
   }
-  .pipe-node.is-lit {
-    animation: none;
-  }
   .pipe-node.is-lit rect {
+    animation: none;
     filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.45));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pipeline__pulse,
-  .pipe-node.is-lit {
-    animation: none !important;
+  .pipeline__pulse {
+    display: none !important;
   }
-  .pipeline__pulse { display: none !important; }
-  .pipe-node.is-lit rect { filter: none; }
+  .pipe-node.is-lit rect {
+    animation: none !important;
+    filter: none;
+  }
 }
 .obs-dot {
   width: 8px;
