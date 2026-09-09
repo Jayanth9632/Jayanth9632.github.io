@@ -412,7 +412,12 @@
           toggleActions: "play none none none",
           once: true,
         },
-        onComplete: () => els.forEach((node) => node.classList.add("is-visible")),
+        onComplete: () =>
+          els.forEach((node) => {
+            node.classList.add("is-visible");
+            /* Drop transform so flex/grid track sizing isn't stuck to pre-anim box */
+            gsap.set(node, { clearProps: "transform" });
+          }),
       });
     });
 

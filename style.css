@@ -1248,16 +1248,17 @@ html:not(.js-gsap) .skill-bar.is-animated span {
 }
 .tech-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
-/* Projects — flex-wrap so last incomplete row fills leftover space */
+/* Projects — auto-fit grid so incomplete last rows fill leftover space */
 .projects-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: var(--card-gap);
+  width: 100%;
 }
-.projects-grid .project-card {
-  flex: 1 1 320px;
+.projects-grid > .project-card {
   min-width: 0;
-  max-width: 100%;
+  width: auto;
+  max-width: none;
 }
 
 .achievements-grid {
