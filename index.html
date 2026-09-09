@@ -679,6 +679,14 @@
             <p class="project-card__impact"><strong>Business Impact:</strong> Minimal downtime recovery; stable multi-env production ops.</p>
             <div class="tech-row"><span>EKS</span><span>AWS</span><span>CronJobs</span><span>VPC</span><span>S3</span></div>
           </article>
+          <article class="project-card reveal">
+            <div class="project-card__top"><h3>Multi-Stage Docker Builds</h3><span class="badge">Containers</span></div>
+            <p><strong>Overview:</strong> Refactored single-stage Dockerfiles into multi-stage builds to produce smaller, more secure, and faster-deploying production images across microservices.</p>
+            <p><strong>Architecture:</strong> Builder Stage → Test/Scan Stage (Trivy) → Minimal Runtime Stage (distroless/alpine) → Registry → ArgoCD → EKS.</p>
+            <p class="project-card__impact"><strong>Business Impact:</strong> Up to 70% smaller image sizes, faster pod startup and autoscaling response in Kubernetes, reduced attack surface by excluding build tools/source/secrets from final images, and faster CI pipeline runs through better Docker layer caching.</p>
+            <p><strong>Why it matters:</strong> Final images ship only runtime artifacts — no compilers, package managers, or build secrets — so Trivy scans a smaller surface and pods pull/start faster. Independent stage caching speeds CI when only app code changes, and lighter images help Kubernetes schedule and autoscale quicker during traffic spikes while cutting registry storage and egress costs.</p>
+            <div class="tech-row"><span>Docker</span><span>Trivy</span><span>Alpine</span><span>Distroless</span><span>ArgoCD</span><span>EKS</span></div>
+          </article>
         </div>
       </div>
     </section>
