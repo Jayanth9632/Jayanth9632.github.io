@@ -233,86 +233,283 @@
     type();
   }
 
-  /* ---- Reveal ---- */
-  const revealEls = document.querySelectorAll(".reveal");
-  if ("IntersectionObserver" in window) {
-    const revealObserver = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-visible");
-          obs.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
-    );
-    revealEls.forEach((el) => revealObserver.observe(el));
-  } else {
-    revealEls.forEach((el) => el.classList.add("is-visible"));
-  }
+  /* ---- GSAP motion (ScrollTrigger + springs) ---- */
+  const gsapReady = () =>
+    typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
 
-  /* ---- Skill bars ---- */
-  const skillBars = document.querySelectorAll(".skill-bar");
-  if ("IntersectionObserver" in window) {
-    const skillObserver = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const bar = entry.target;
-          bar.style.setProperty("--level", `${bar.getAttribute("data-level") || 80}%`);
-          bar.classList.add("is-animated");
-          obs.unobserve(bar);
-        });
-      },
-      { threshold: 0.4 }
-    );
-    skillBars.forEach((bar) => skillObserver.observe(bar));
-  } else {
-    skillBars.forEach((bar) => {
-      bar.style.setProperty("--level", `${bar.getAttribute("data-level") || 80}%`);
-      bar.classList.add("is-animated");
-    });
-  }
+  const initMotion = () => {
+    if (!gsapReady()) {
+      /* Fallback: CSS / IntersectionObserver */
+      const revealEls = document.querySelectorAll(".reveal");
+      if ("IntersectionObserver" in window) {
+        const revealObserver = new IntersectionObserver(
+          (entries, obs) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              entry.target.classList.add("is-visible");
+              obs.unobserve(entry.target);
+            });
+          },
+          { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+        );
+        revealEls.forEach((el) => revealObserver.observe(el));
+      } else {
+        revealEls.forEach((el) => el.classList.add("is-visible"));
+      }
 
-  /* ---- Counters ---- */
-  const counters = document.querySelectorAll("[data-count]");
-  const formatCount = (value, decimals) =>
-    decimals > 0 ? value.toFixed(decimals) : String(Math.round(value));
+      const skillBars = document.querySelectorAll(".skill-bar");
+      if ("IntersectionObserver" in window) {
+        const skillObserver = new IntersectionObserver(
+          (entries, obs) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              const bar = entry.target;
+              bar.style.setProperty("--level", `${bar.getAttribute("data-level") || 80}%`);
+              bar.classList.add("is-animated");
+              obs.unobserve(bar);
+            });
+          },
+          { threshold: 0.4 }
+        );
+        skillBars.forEach((bar) => skillObserver.observe(bar));
+      }
 
-  const animateCount = (el) => {
-    const target = Number(el.getAttribute("data-count")) || 0;
-    const suffix = el.getAttribute("data-suffix") || "";
-    const decimals = Number(el.getAttribute("data-decimals")) || 0;
-    if (prefersReducedMotion) {
-      el.textContent = `${formatCount(target, decimals)}${suffix}`;
+      const counters = document.querySelectorAll("[data-count]");
+      const formatCount = (value, decimals) =>
+        decimals > 0 ? value.toFixed(decimals) : String(Math.round(value));
+      const animateCount = (el) => {
+        const target = Number(el.getAttribute("data-count")) || 0;
+        const suffix = el.getAttribute("data-suffix") || "";
+        const decimals = Number(el.getAttribute("data-decimals")) || 0;
+        if (prefersReducedMotion) {
+          el.textContent = `${formatCount(target, decimals)}${suffix}`;
+          return;
+        }
+        const duration = 1400;
+        const start = performance.now();
+        const step = (now) => {
+          const ratio = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - ratio, 3);
+          el.textContent = `${formatCount(target * eased, decimals)}${suffix}`;
+          if (ratio < 1) requestAnimationFrame(step);
+          else el.textContent = `${formatCount(target, decimals)}${suffix}`;
+        };
+        requestAnimationFrame(step);
+      };
+      if ("IntersectionObserver" in window) {
+        const countObserver = new IntersectionObserver(
+          (entries, obs) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              animateCount(entry.target);
+              obs.unobserve(entry.target);
+            });
+          },
+          { threshold: 0.5 }
+        );
+        counters.forEach((el) => countObserver.observe(el));
+      } else {
+        counters.forEach(animateCount);
+      }
       return;
     }
-    const duration = 1400;
-    const start = performance.now();
-    const step = (now) => {
-      const ratio = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - ratio, 3);
-      el.textContent = `${formatCount(target * eased, decimals)}${suffix}`;
-      if (ratio < 1) requestAnimationFrame(step);
-      else el.textContent = `${formatCount(target, decimals)}${suffix}`;
-    };
-    requestAnimationFrame(step);
+
+    const { gsap, ScrollTrigger } = window;
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* Spring-like physics easing (overshoot = natural, not linear/robotic) */
+    const spring = prefersReducedMotion ? "power1.out" : "back.out(1.2)";
+    const soft = prefersReducedMotion ? "power1.out" : "expo.out";
+    const dur = prefersReducedMotion ? 0.28 : 0.9;
+    const yDist = prefersReducedMotion ? 0 : 36;
+
+    /* Pre-hide hero children (no .reveal) before unlocking parent containers */
+    const heroBits = gsap.utils.toArray(".hero__text > *:not(.stats), .hero__visual .hero__photo-wrap");
+    if (heroBits.length) {
+      gsap.set(heroBits, { opacity: 0, y: prefersReducedMotion ? 0 : 28 });
+    }
+
+    /* Staggered grids — set initial state before unlocking parents */
+    const staggerSets = [
+      { trigger: ".stats", items: ".stats .stat-card", stagger: 0.07 },
+      { trigger: ".highlights", items: ".highlights__header, .highlight-card", stagger: 0.08 },
+      { trigger: ".skills-grid", items: ".skill-card", stagger: 0.07 },
+      { trigger: ".projects-grid", items: ".project-card", stagger: 0.08 },
+      { trigger: ".achievements-grid", items: ".achieve-card", stagger: 0.07 },
+      { trigger: ".timeline", items: ".timeline__item", stagger: 0.12 },
+      { trigger: ".obs-grid", items: ".obs-card", stagger: 0.1 },
+      { trigger: ".learning-grid", items: ".learning-card", stagger: 0.1 },
+      { trigger: ".contact-info", items: ".contact-item", stagger: 0.08 },
+      { trigger: ".stack-grid", items: ".stack-card", stagger: 0.05 },
+    ];
+
+    staggerSets.forEach(({ items }) => {
+      const els = gsap.utils.toArray(items);
+      if (els.length) gsap.set(els, { opacity: 0, y: yDist });
+    });
+
+    document.documentElement.classList.add("js-gsap");
+
+    /* Skip cards/hero/parents handled by stagger or dedicated timelines */
+    const skipSoloReveal =
+      ".skill-card, .project-card, .achieve-card, .timeline__item, .stat-card, .highlight-card, .obs-card, .learning-card, .stack-card, .cert-card, .contact-item, .hero__text, .hero__visual, .stats, .highlights";
+
+    /* Section / block reveals */
+    gsap.utils.toArray(".reveal").forEach((el) => {
+      if (el.matches(skipSoloReveal)) return;
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: yDist },
+        {
+          opacity: 1,
+          y: 0,
+          duration: dur,
+          ease: soft,
+          force3D: true,
+          scrollTrigger: {
+            trigger: el,
+            start: "top 88%",
+            toggleActions: "play none none none",
+            once: true,
+          },
+          onComplete: () => el.classList.add("is-visible"),
+        }
+      );
+    });
+
+    staggerSets.forEach(({ trigger, items, stagger }) => {
+      const rootEl = document.querySelector(trigger);
+      const els = gsap.utils.toArray(items);
+      if (!rootEl || !els.length) return;
+
+      gsap.to(els, {
+        opacity: 1,
+        y: 0,
+        duration: dur,
+        ease: spring,
+        force3D: true,
+        stagger: prefersReducedMotion ? 0.02 : stagger,
+        scrollTrigger: {
+          trigger: rootEl,
+          start: "top 85%",
+          toggleActions: "play none none none",
+          once: true,
+        },
+        onComplete: () => els.forEach((node) => node.classList.add("is-visible")),
+      });
+    });
+
+    /* Hero entrance */
+    if (heroBits.length) {
+      gsap.to(heroBits, {
+        opacity: 1,
+        y: 0,
+        duration: prefersReducedMotion ? 0.3 : 0.95,
+        ease: spring,
+        force3D: true,
+        stagger: prefersReducedMotion ? 0.02 : 0.08,
+        delay: prefersReducedMotion ? 0 : 0.12,
+      });
+    }
+
+    /* Skill bars via scaleX (transform only) */
+    document.querySelectorAll(".skill-bar").forEach((bar) => {
+      const level = bar.getAttribute("data-level") || "80";
+      bar.style.setProperty("--level", `${level}%`);
+      const fill = bar.querySelector("span");
+      if (!fill) return;
+      gsap.fromTo(
+        fill,
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          duration: prefersReducedMotion ? 0.3 : 1.1,
+          ease: soft,
+          transformOrigin: "left center",
+          scrollTrigger: {
+            trigger: bar,
+            start: "top 90%",
+            once: true,
+          },
+          onStart: () => bar.classList.add("is-animated"),
+        }
+      );
+    });
+
+    /* Stat counters */
+    document.querySelectorAll("[data-count]").forEach((el) => {
+      const target = Number(el.getAttribute("data-count")) || 0;
+      const suffix = el.getAttribute("data-suffix") || "";
+      const decimals = Number(el.getAttribute("data-decimals")) || 0;
+      const state = { val: 0 };
+
+      const formatCount = (value) =>
+        decimals > 0 ? value.toFixed(decimals) : String(Math.round(value));
+
+      ScrollTrigger.create({
+        trigger: el,
+        start: "top 90%",
+        once: true,
+        onEnter: () => {
+          if (prefersReducedMotion) {
+            el.textContent = `${formatCount(target)}${suffix}`;
+            return;
+          }
+          gsap.to(state, {
+            val: target,
+            duration: 1.6,
+            ease: "power2.out",
+            onUpdate: () => {
+              el.textContent = `${formatCount(state.val)}${suffix}`;
+            },
+            onComplete: () => {
+              el.textContent = `${formatCount(target)}${suffix}`;
+            },
+          });
+        },
+      });
+    });
+
+    /* Contact form + resume + about + pipeline + edu */
+    [".contact-form", ".resume-panel", ".edu-card", ".pipeline", ".about", ".obs-flow"].forEach((sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      if (el.classList.contains("reveal")) return; /* already covered by .reveal pass */
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: yDist },
+        {
+          opacity: 1,
+          y: 0,
+          duration: dur,
+          ease: soft,
+          force3D: true,
+          scrollTrigger: {
+            trigger: el,
+            start: "top 88%",
+            once: true,
+          },
+        }
+      );
+    });
   };
 
-  if ("IntersectionObserver" in window) {
-    const countObserver = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          animateCount(entry.target);
-          obs.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.5 }
-    );
-    counters.forEach((el) => countObserver.observe(el));
+  if (gsapReady()) {
+    initMotion();
   } else {
-    counters.forEach(animateCount);
+    /* GSAP scripts deferred — wait briefly if this file raced ahead */
+    let tries = 0;
+    const waitGsap = () => {
+      tries += 1;
+      if (gsapReady()) {
+        initMotion();
+      } else if (tries < 40) {
+        setTimeout(waitGsap, 50);
+      } else {
+        initMotion();
+      }
+    };
+    waitGsap();
   }
 
   /* ---- Resume modal ---- */
