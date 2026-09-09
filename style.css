@@ -1377,6 +1377,7 @@ html:not(.js-gsap) .skill-bar.is-animated span {
   width: 100%;
   height: auto;
   display: block;
+  overflow: hidden; /* clip any residual origin-glitch from delayed pulses */
 }
 
 .pipeline__svg--mobile { display: none; }
@@ -1389,6 +1390,10 @@ html:not(.js-gsap) .skill-bar.is-animated span {
 .pipeline__path--return {
   opacity: 0.95;
   filter: drop-shadow(0 0 2px rgba(96, 165, 250, 0.28));
+}
+
+.pipeline__pulse {
+  pointer-events: none;
 }
 
 /* HTML card over the return arc — matches site card tokens */
@@ -1468,10 +1473,6 @@ html:not(.js-gsap) .skill-bar.is-animated span {
   font-size: 9px;
   font-family: var(--font-mono);
   text-anchor: middle;
-}
-
-.pipeline__pulse {
-  opacity: 0.98;
 }
 
 .pipeline__legend {

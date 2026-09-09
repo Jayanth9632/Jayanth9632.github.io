@@ -711,9 +711,10 @@
                 <stop offset="70%" stop-color="#60A5FA"/>
                 <stop offset="100%" stop-color="#F6821F"/>
               </linearGradient>
+              <!-- Intentional: Incident (orange) → Git Push (blue) closed-loop story -->
               <linearGradient id="pipeReturnGrad" x1="100%" y1="0%" x2="0%" y2="0%">
                 <stop offset="0%" stop-color="#F6821F"/>
-                <stop offset="50%" stop-color="#60A5FA"/>
+                <stop offset="45%" stop-color="#60A5FA"/>
                 <stop offset="100%" stop-color="#326CE5"/>
               </linearGradient>
               <filter id="pipeGlow" x="-80%" y="-80%" width="260%" height="260%">
@@ -782,23 +783,27 @@
               <text class="pipe-node__sub" y="14">RCA → fix</text>
             </g>
 
-            <!-- Pulses -->
-            <circle class="pipeline__pulse" r="5" filter="url(#pipeGlow)" fill="#60A5FA">
-              <animateMotion dur="12s" repeatCount="indefinite">
+            <!-- Pulses: opacity gated until begin — animateMotion parks at (0,0) otherwise (= top-left artifact) -->
+            <circle class="pipeline__pulse" r="5" cx="70" cy="58" opacity="0" filter="url(#pipeGlow)" fill="#60A5FA">
+              <animate attributeName="opacity" values="0;1" dur="0.05s" begin="0s" fill="freeze"/>
+              <animateMotion dur="12s" repeatCount="indefinite" begin="0s">
                 <mpath xlink:href="#pipeForward"/>
               </animateMotion>
             </circle>
-            <circle class="pipeline__pulse" r="4" filter="url(#pipeGlow)" fill="#A78BFA">
+            <circle class="pipeline__pulse" r="4" cx="70" cy="58" opacity="0" filter="url(#pipeGlow)" fill="#A78BFA">
+              <animate attributeName="opacity" values="0;1" dur="0.05s" begin="4s" fill="freeze"/>
               <animateMotion dur="12s" begin="4s" repeatCount="indefinite">
                 <mpath xlink:href="#pipeForward"/>
               </animateMotion>
             </circle>
-            <circle class="pipeline__pulse" r="3.5" filter="url(#pipeGlow)" fill="#F6821F">
+            <circle class="pipeline__pulse" r="3.5" cx="70" cy="58" opacity="0" filter="url(#pipeGlow)" fill="#F6821F">
+              <animate attributeName="opacity" values="0;1" dur="0.05s" begin="8s" fill="freeze"/>
               <animateMotion dur="12s" begin="8s" repeatCount="indefinite">
                 <mpath xlink:href="#pipeForward"/>
               </animateMotion>
             </circle>
-            <circle class="pipeline__pulse pipeline__pulse--return" r="3.5" filter="url(#pipeGlow)" fill="#93C5FD">
+            <circle class="pipeline__pulse pipeline__pulse--return" r="3.5" cx="1030" cy="86" opacity="0" filter="url(#pipeGlow)" fill="#93C5FD">
+              <animate attributeName="opacity" values="0;1" dur="0.05s" begin="10s" fill="freeze"/>
               <animateMotion dur="12s" begin="10s" repeatCount="indefinite">
                 <mpath xlink:href="#pipeReturn"/>
               </animateMotion>
@@ -873,22 +878,26 @@
               <text class="pipe-node__sub" y="13">RCA → Git fix</text>
             </g>
 
-            <circle class="pipeline__pulse" r="5" filter="url(#pipeGlowM)" fill="#60A5FA">
-              <animateMotion dur="12s" repeatCount="indefinite">
+            <circle class="pipeline__pulse" r="5" cx="160" cy="40" opacity="0" filter="url(#pipeGlowM)" fill="#60A5FA">
+              <animate attributeName="opacity" values="0;1" dur="0.05s" begin="0s" fill="freeze"/>
+              <animateMotion dur="12s" repeatCount="indefinite" begin="0s">
                 <mpath xlink:href="#pipeForwardM"/>
               </animateMotion>
             </circle>
-            <circle class="pipeline__pulse" r="4" filter="url(#pipeGlowM)" fill="#A78BFA">
+            <circle class="pipeline__pulse" r="4" cx="160" cy="40" opacity="0" filter="url(#pipeGlowM)" fill="#A78BFA">
+              <animate attributeName="opacity" values="0;1" dur="0.05s" begin="4s" fill="freeze"/>
               <animateMotion dur="12s" begin="4s" repeatCount="indefinite">
                 <mpath xlink:href="#pipeForwardM"/>
               </animateMotion>
             </circle>
-            <circle class="pipeline__pulse" r="3.5" filter="url(#pipeGlowM)" fill="#F6821F">
+            <circle class="pipeline__pulse" r="3.5" cx="160" cy="40" opacity="0" filter="url(#pipeGlowM)" fill="#F6821F">
+              <animate attributeName="opacity" values="0;1" dur="0.05s" begin="8s" fill="freeze"/>
               <animateMotion dur="12s" begin="8s" repeatCount="indefinite">
                 <mpath xlink:href="#pipeForwardM"/>
               </animateMotion>
             </circle>
-            <circle class="pipeline__pulse" r="3.5" filter="url(#pipeGlowM)" fill="#93C5FD">
+            <circle class="pipeline__pulse" r="3.5" cx="175" cy="720" opacity="0" filter="url(#pipeGlowM)" fill="#93C5FD">
+              <animate attributeName="opacity" values="0;1" dur="0.05s" begin="10s" fill="freeze"/>
               <animateMotion dur="12s" begin="10s" repeatCount="indefinite">
                 <mpath xlink:href="#pipeReturnM"/>
               </animateMotion>
