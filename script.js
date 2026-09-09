@@ -656,6 +656,35 @@
 
   window.addEventListener("resize", drawDashboard);
 
+  /* ---- Pipeline node glow synced to traveling pulses ---- */
+  const initPipelineGlow = () => {
+    if (prefersReducedMotion) return;
+    const duration = 12000;
+    const pulseOffsets = [0, 4000, 8000];
+    const nodeCount = 9;
+    const windowMs = 420;
+
+    const tick = (now) => {
+      const t = now % duration;
+      document.querySelectorAll(".pipeline__svg").forEach((svg) => {
+        const nodes = svg.querySelectorAll(".pipe-node");
+        nodes.forEach((node) => {
+          const i = Number(node.getAttribute("data-node")) || 0;
+          const nodeT = (i / (nodeCount - 1)) * duration;
+          const lit = pulseOffsets.some((off) => {
+            const local = (t - off + duration) % duration;
+            const dist = Math.min(Math.abs(local - nodeT), duration - Math.abs(local - nodeT));
+            return dist < windowMs;
+          });
+          node.classList.toggle("is-lit", lit);
+        });
+      });
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+  initPipelineGlow();
+
   /* ---- Subtle live metric jitter (visual only) ---- */
   if (!prefersReducedMotion) {
     const liveNodes = document.querySelectorAll("[data-live]");
