@@ -53,36 +53,66 @@
     link.addEventListener("click", closeNav);
   });
 
-  /* ---- Scroll UI ---- */
+  /* ---- Scroll UI (rAF-throttled, transform-only progress) ---- */
   const progress = document.getElementById("scrollProgress");
   const backTop = document.getElementById("backTop");
+  const heroArch = document.querySelector(".hero__arch");
+  let scrollTicking = false;
+  let lastScrollY = 0;
 
-  const onScroll = () => {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  const updateScrollUI = () => {
+    scrollTicking = false;
+    const scrollTop = lastScrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const pct = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+    const pct = docHeight > 0 ? Math.min(1, scrollTop / docHeight) : 0;
 
     if (progress) {
-      progress.style.width = `${pct}%`;
-      progress.setAttribute("aria-valuenow", String(Math.round(pct)));
+      progress.style.transform = `scaleX(${pct})`;
+      progress.setAttribute("aria-valuenow", String(Math.round(pct * 100)));
     }
 
     header?.classList.toggle("is-scrolled", scrollTop > 20);
     backTop?.classList.toggle("is-visible", scrollTop > 500);
 
-    const sections = document.querySelectorAll("main section[id]");
-    let current = "";
-    sections.forEach((section) => {
-      if (scrollTop >= section.offsetTop - 120) current = section.id;
-    });
-    document.querySelectorAll(".nav__link").forEach((link) => {
-      const href = link.getAttribute("href") || "";
-      link.classList.toggle("is-active", href === `#${current}`);
-    });
+    if (heroArch && !prefersReducedMotion && scrollTop < window.innerHeight * 1.2) {
+      heroArch.style.transform = `translate3d(0, ${scrollTop * 0.18}px, 0)`;
+      heroArch.style.opacity = String(Math.max(0.08, 0.2 - scrollTop / 2500));
+    }
   };
 
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
+  window.addEventListener(
+    "scroll",
+    () => {
+      lastScrollY = window.scrollY || document.documentElement.scrollTop;
+      if (!scrollTicking) {
+        scrollTicking = true;
+        requestAnimationFrame(updateScrollUI);
+      }
+    },
+    { passive: true }
+  );
+  lastScrollY = window.scrollY || 0;
+  updateScrollUI();
+
+  /* Nav active section via IntersectionObserver (no offsetTop layout thrash) */
+  const navLinks = document.querySelectorAll(".nav__link");
+  const sectionEls = document.querySelectorAll("main section[id]");
+  if ("IntersectionObserver" in window && sectionEls.length) {
+    const navObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const id = entry.target.id;
+          navLinks.forEach((link) => {
+            const href = link.getAttribute("href") || "";
+            link.classList.toggle("is-active", href === `#${id}`);
+          });
+        });
+      },
+      { rootMargin: "-35% 0px -55% 0px", threshold: 0 }
+    );
+    sectionEls.forEach((section) => navObserver.observe(section));
+  }
 
   backTop?.addEventListener("click", () => {
     smoothScrollTo(0);
@@ -121,7 +151,7 @@
     });
   });
 
-  /* ---- Cursor glow + card spotlight ---- */
+  /* ---- Cursor glow + card spotlight (pointer:fine only) ---- */
   const cursorGlow = document.getElementById("cursorGlow");
   const spotlightSelector =
     ".stat-card, .highlight-card, .skill-card, .project-card, .achieve-card, .timeline__card, .obs-card, .learning-card, .contact-item, .resume-panel";
@@ -179,22 +209,6 @@
         { passive: true }
       );
     });
-  }
-
-  /* ---- Hero architecture parallax ---- */
-  const heroArch = document.querySelector(".hero__arch");
-  if (heroArch && !prefersReducedMotion) {
-    window.addEventListener(
-      "scroll",
-      () => {
-        const y = window.scrollY;
-        if (y < window.innerHeight * 1.2) {
-          heroArch.style.transform = `translate3d(0, ${y * 0.18}px, 0)`;
-          heroArch.style.opacity = String(Math.max(0.08, 0.2 - y / 2500));
-        }
-      },
-      { passive: true }
-    );
   }
 
   /* ---- Typing ---- */
@@ -316,6 +330,9 @@
 
     const { gsap, ScrollTrigger } = window;
     gsap.registerPlugin(ScrollTrigger);
+    if (ScrollTrigger.config) {
+      ScrollTrigger.config({ ignoreMobileResize: true });
+    }
 
     /* Spring-like physics easing (overshoot = natural, not linear/robotic) */
     const spring = prefersReducedMotion ? "power1.out" : "back.out(1.2)";
@@ -512,6 +529,10 @@
     waitGsap();
   }
 
+  window.addEventListener("load", () => {
+    if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+  });
+
   /* ---- Resume modal ---- */
   const modal = document.getElementById("resumeModal");
   let lastFocus = null;
@@ -519,6 +540,10 @@
   const openModal = () => {
     if (!modal) return;
     lastFocus = document.activeElement;
+    const frame = modal.querySelector(".modal__frame");
+    if (frame && !frame.getAttribute("src")) {
+      frame.setAttribute("src", frame.getAttribute("data-src") || "resume.pdf#view=FitH");
+    }
     modal.hidden = false;
     document.body.style.overflow = "hidden";
     modal.querySelector(".modal__close")?.focus();
@@ -573,9 +598,12 @@
     }
   });
 
-  /* ---- Observability dashboard canvas ---- */
+  /* ---- Observability dashboard canvas (lazy + pause offscreen) ---- */
   const canvas = document.getElementById("dashCanvas");
+  const monitoringSection = document.getElementById("monitoring");
   let dashPoints = [];
+  let dashTimer = null;
+  let dashVisible = false;
 
   const seedDash = () => {
     dashPoints = Array.from({ length: 36 }, (_, i) => ({
@@ -585,13 +613,17 @@
   };
 
   const drawDashboard = () => {
-    if (!canvas || !canvas.getContext) return;
+    if (!canvas || !canvas.getContext || !dashVisible) return;
     const ctx = canvas.getContext("2d");
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const cssW = canvas.clientWidth || 640;
     const cssH = 140;
-    canvas.width = cssW * dpr;
-    canvas.height = cssH * dpr;
+    const nextW = Math.floor(cssW * dpr);
+    const nextH = Math.floor(cssH * dpr);
+    if (canvas.width !== nextW || canvas.height !== nextH) {
+      canvas.width = nextW;
+      canvas.height = nextH;
+    }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssW, cssH);
 
@@ -607,7 +639,7 @@
     }
 
     if (!dashPoints.length) seedDash();
-    const maxX = dashPoints.length - 1;
+    const maxX = dashPoints.length - 1 || 1;
     const mapX = (x) => (x / maxX) * cssW;
     const mapY = (y) => cssH - y;
 
@@ -637,11 +669,14 @@
     ctx.fill();
   };
 
-  seedDash();
-  drawDashboard();
-
-  if (!prefersReducedMotion) {
-    setInterval(() => {
+  const startDash = () => {
+    if (!canvas) return;
+    dashVisible = true;
+    if (!dashPoints.length) seedDash();
+    drawDashboard();
+    if (prefersReducedMotion || dashTimer) return;
+    dashTimer = setInterval(() => {
+      if (!dashVisible) return;
       dashPoints.push({
         x: dashPoints.length ? dashPoints[dashPoints.length - 1].x + 1 : 0,
         y: 42 + Math.sin(Date.now() / 700) * 16 + Math.random() * 8,
@@ -652,54 +687,168 @@
       }
       drawDashboard();
     }, 900);
+  };
+
+  const stopDash = () => {
+    dashVisible = false;
+    if (dashTimer) {
+      clearInterval(dashTimer);
+      dashTimer = null;
+    }
+  };
+
+  if (monitoringSection && "IntersectionObserver" in window) {
+    const monObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) startDash();
+          else stopDash();
+        });
+      },
+      { rootMargin: "80px 0px", threshold: 0.05 }
+    );
+    monObs.observe(monitoringSection);
+  } else {
+    startDash();
   }
 
-  window.addEventListener("resize", drawDashboard);
+  let resizeDashTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeDashTimer);
+    resizeDashTimer = setTimeout(drawDashboard, 120);
+  });
 
-  /* ---- Pipeline node glow synced to traveling pulses ---- */
+  /* ---- Pipeline node glow (visible SVG only, pause offscreen) ---- */
   const initPipelineGlow = () => {
     if (prefersReducedMotion) return;
+    const pipelineRoot = document.querySelector(".pipeline");
+    if (!pipelineRoot) return;
+
     const duration = 12000;
     const pulseOffsets = [0, 4000, 8000];
     const nodeCount = 9;
     const windowMs = 420;
+    const isMobile = () => window.matchMedia("(max-width: 900px)").matches;
+    let running = false;
+    let rafId = 0;
+    let intervalId = 0;
 
-    const tick = (now) => {
+    const activeSvg = () =>
+      document.querySelector(isMobile() ? ".pipeline__svg--mobile" : ".pipeline__svg--desk");
+
+    const updateLit = (now) => {
+      const svg = activeSvg();
+      if (!svg) return;
       const t = now % duration;
-      document.querySelectorAll(".pipeline__svg").forEach((svg) => {
-        const nodes = svg.querySelectorAll(".pipe-node");
-        nodes.forEach((node) => {
-          const i = Number(node.getAttribute("data-node")) || 0;
-          const nodeT = (i / (nodeCount - 1)) * duration;
-          const lit = pulseOffsets.some((off) => {
-            const local = (t - off + duration) % duration;
-            const dist = Math.min(Math.abs(local - nodeT), duration - Math.abs(local - nodeT));
-            return dist < windowMs;
-          });
-          node.classList.toggle("is-lit", lit);
+      svg.querySelectorAll(".pipe-node").forEach((node) => {
+        const i = Number(node.getAttribute("data-node")) || 0;
+        const nodeT = (i / (nodeCount - 1)) * duration;
+        const lit = pulseOffsets.some((off) => {
+          const local = (t - off + duration) % duration;
+          const dist = Math.min(Math.abs(local - nodeT), duration - Math.abs(local - nodeT));
+          return dist < windowMs;
         });
+        if (node.classList.contains("is-lit") !== lit) {
+          node.classList.toggle("is-lit", lit);
+        }
       });
-      requestAnimationFrame(tick);
+      document.querySelectorAll(".pipeline__svg").forEach((other) => {
+        if (other === svg) return;
+        other.querySelectorAll(".pipe-node.is-lit").forEach((n) => n.classList.remove("is-lit"));
+      });
     };
-    requestAnimationFrame(tick);
+
+    const start = () => {
+      if (running) return;
+      running = true;
+      if (isMobile()) {
+        intervalId = window.setInterval(() => updateLit(performance.now()), 120);
+      } else {
+        const loop = (now) => {
+          updateLit(now);
+          if (running) rafId = requestAnimationFrame(loop);
+        };
+        rafId = requestAnimationFrame(loop);
+      }
+    };
+
+    const stop = () => {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      if (intervalId) clearInterval(intervalId);
+      rafId = 0;
+      intervalId = 0;
+      document.querySelectorAll(".pipe-node.is-lit").forEach((n) => n.classList.remove("is-lit"));
+    };
+
+    if ("IntersectionObserver" in window) {
+      const pipeObs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) start();
+            else stop();
+          });
+        },
+        { rootMargin: "60px 0px", threshold: 0.05 }
+      );
+      pipeObs.observe(pipelineRoot);
+    } else {
+      start();
+    }
+
+    let pipeResizeTimer = null;
+    window.addEventListener(
+      "resize",
+      () => {
+        clearTimeout(pipeResizeTimer);
+        pipeResizeTimer = setTimeout(() => {
+          if (!running) return;
+          stop();
+          start();
+        }, 150);
+      },
+      { passive: true }
+    );
   };
   initPipelineGlow();
 
-  /* ---- Subtle live metric jitter (visual only) ---- */
-  if (!prefersReducedMotion) {
+  /* ---- Live metric jitter only while monitoring visible ---- */
+  if (!prefersReducedMotion && monitoringSection) {
+    let liveTimer = null;
     const liveNodes = document.querySelectorAll("[data-live]");
-    setInterval(() => {
-      liveNodes.forEach((node) => {
-        const base = Number(node.getAttribute("data-live"));
-        if (Number.isNaN(base)) return;
-        if (base < 1) {
-          const next = Math.max(0.05, Math.min(0.45, base + (Math.random() - 0.5) * 0.08));
-          node.textContent = `${next.toFixed(2)}%`;
-          return;
-        }
-        const next = Math.round(Math.max(base - 3, Math.min(base + 3, base + (Math.random() - 0.5) * 4)));
-        node.textContent = `${next}%`;
-      });
-    }, 2200);
+    const startLive = () => {
+      if (liveTimer || !liveNodes.length) return;
+      liveTimer = setInterval(() => {
+        liveNodes.forEach((node) => {
+          const base = Number(node.getAttribute("data-live"));
+          if (Number.isNaN(base)) return;
+          if (base < 1) {
+            const next = Math.max(0.05, Math.min(0.45, base + (Math.random() - 0.5) * 0.08));
+            node.textContent = `${next.toFixed(2)}%`;
+            return;
+          }
+          const next = Math.round(Math.max(base - 3, Math.min(base + 3, base + (Math.random() - 0.5) * 4)));
+          node.textContent = `${next}%`;
+        });
+      }, 2200);
+    };
+    const stopLive = () => {
+      if (liveTimer) {
+        clearInterval(liveTimer);
+        liveTimer = null;
+      }
+    };
+    if ("IntersectionObserver" in window) {
+      const liveObs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) startLive();
+            else stopLive();
+          });
+        },
+        { threshold: 0.1 }
+      );
+      liveObs.observe(monitoringSection);
+    }
   }
 })();

@@ -703,74 +703,93 @@
 
         <div class="pipeline reveal" aria-label="Animated CI/CD to incident response pipeline">
           <!-- Desktop / tablet horizontal -->
-          <svg class="pipeline__svg pipeline__svg--desk" viewBox="0 0 1120 260" role="img" aria-hidden="true" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <svg class="pipeline__svg pipeline__svg--desk" viewBox="0 0 1120 220" role="img" aria-hidden="true" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs>
               <linearGradient id="pipeLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#326CE5"/>
                 <stop offset="70%" stop-color="#60A5FA"/>
                 <stop offset="100%" stop-color="#F6821F"/>
               </linearGradient>
+              <linearGradient id="pipeReturnGrad" x1="100%" y1="0%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#F6821F"/>
+                <stop offset="55%" stop-color="#60A5FA"/>
+                <stop offset="100%" stop-color="#326CE5"/>
+              </linearGradient>
               <filter id="pipeGlow" x="-80%" y="-80%" width="260%" height="260%">
                 <feGaussianBlur stdDeviation="3.2" result="b"/>
                 <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
               </filter>
+              <marker id="pipeArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#60A5FA"/>
+              </marker>
             </defs>
 
-            <!-- Forward path -->
+            <!-- Forward path through nodes -->
             <path id="pipeForward" class="pipeline__path" fill="none" stroke="url(#pipeLineGrad)" stroke-width="2"
-              d="M70 88 H1030"/>
-            <!-- Return loop: Incident → Git -->
-            <path id="pipeReturn" class="pipeline__path pipeline__path--return" fill="none" stroke="#8b949e" stroke-width="1.35" stroke-dasharray="5 5" stroke-opacity="0.55"
-              d="M1030 108 C1030 190, 70 190, 70 108"/>
+              d="M70 64 H1030"/>
+
+            <!-- Closed feedback loop: Incident ↓ → left → ↑ Git -->
+            <path id="pipeReturn" class="pipeline__path pipeline__path--return" fill="none"
+              stroke="url(#pipeReturnGrad)" stroke-width="1.6" stroke-dasharray="6 5" stroke-opacity="0.85"
+              marker-end="url(#pipeArrow)"
+              d="M1030 92
+                 V148
+                 Q1030 168 1010 168
+                 H90
+                 Q70 168 70 148
+                 V92"/>
+
+            <!-- Loop lane background strip -->
+            <rect class="pipeline__loop-band" x="48" y="128" width="1024" height="56" rx="14"/>
 
             <!-- Nodes -->
-            <g class="pipe-node" data-node="0" style="--i:0" transform="translate(70,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node" data-node="0" style="--i:0" transform="translate(70,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">Git Push</text>
               <text class="pipe-node__sub" y="14">developer commit</text>
             </g>
-            <g class="pipe-node" data-node="1" style="--i:1" transform="translate(190,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node" data-node="1" style="--i:1" transform="translate(190,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">Jenkins</text>
               <text class="pipe-node__sub" y="14">webhook build</text>
             </g>
-            <g class="pipe-node" data-node="2" style="--i:2" transform="translate(310,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node" data-node="2" style="--i:2" transform="translate(310,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">Security</text>
               <text class="pipe-node__sub" y="14">Trivy + SAST</text>
             </g>
-            <g class="pipe-node" data-node="3" style="--i:3" transform="translate(430,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node" data-node="3" style="--i:3" transform="translate(430,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">Registry</text>
               <text class="pipe-node__sub" y="14">GHCR push</text>
             </g>
-            <g class="pipe-node" data-node="4" style="--i:4" transform="translate(550,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node" data-node="4" style="--i:4" transform="translate(550,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">ArgoCD</text>
               <text class="pipe-node__sub" y="14">GitOps sync</text>
             </g>
-            <g class="pipe-node" data-node="5" style="--i:5" transform="translate(670,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node" data-node="5" style="--i:5" transform="translate(670,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">EKS</text>
               <text class="pipe-node__sub" y="14">pod rollout</text>
             </g>
-            <g class="pipe-node" data-node="6" style="--i:6" transform="translate(790,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node" data-node="6" style="--i:6" transform="translate(790,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">Monitor</text>
               <text class="pipe-node__sub" y="14">Prom → Grafana</text>
             </g>
-            <g class="pipe-node" data-node="7" style="--i:7" transform="translate(910,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node" data-node="7" style="--i:7" transform="translate(910,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">Alerting</text>
               <text class="pipe-node__sub" y="14">Slack / Email</text>
             </g>
-            <g class="pipe-node pipe-node--loop" data-node="8" style="--i:8" transform="translate(1030,88)">
-              <rect x="-48" y="-28" width="96" height="56" rx="12"/>
+            <g class="pipe-node pipe-node--loop" data-node="8" style="--i:8" transform="translate(1030,64)">
+              <rect x="-48" y="-26" width="96" height="52" rx="12"/>
               <text class="pipe-node__title" y="-2">Incident</text>
               <text class="pipe-node__sub" y="14">RCA → fix</text>
             </g>
 
-            <text class="pipeline__loop-label" x="550" y="210">fix → commit → redeploy</text>
+            <text class="pipeline__loop-label" x="550" y="162">fix loop · fix → commit → redeploy</text>
 
             <!-- Pulses on forward path (3 staggered) -->
             <circle class="pipeline__pulse" r="5" filter="url(#pipeGlow)" fill="#60A5FA">
@@ -812,8 +831,12 @@
 
             <path id="pipeForwardM" class="pipeline__path" fill="none" stroke="url(#pipeLineGradM)" stroke-width="2"
               d="M160 40 V720"/>
-            <path id="pipeReturnM" class="pipeline__path pipeline__path--return" fill="none" stroke="#8b949e" stroke-width="1.35" stroke-dasharray="5 5" stroke-opacity="0.55"
-              d="M175 720 C260 720, 260 40, 175 40"/>
+            <path id="pipeReturnM" class="pipeline__path pipeline__path--return" fill="none" stroke="#60A5FA" stroke-width="1.5" stroke-dasharray="6 5" stroke-opacity="0.8"
+              d="M175 720
+                 H255
+                 V40
+                 H175"/>
+            <text class="pipeline__loop-label" x="268" y="380" transform="rotate(90 268 380)">fix · fix → redeploy</text>
 
             <g class="pipe-node" data-node="0" style="--i:0" transform="translate(160,40)">
               <rect x="-70" y="-22" width="140" height="44" rx="12"/>
@@ -1176,7 +1199,7 @@
           <button type="button" class="modal__close" data-close-modal aria-label="Close resume preview">×</button>
         </div>
       </div>
-      <iframe src="resume.pdf#view=FitH" title="Jayanth M Resume PDF preview" class="modal__frame" loading="lazy"></iframe>
+      <iframe data-src="resume.pdf#view=FitH" title="Jayanth M Resume PDF preview" class="modal__frame" loading="lazy"></iframe>
     </div>
   </div>
 
