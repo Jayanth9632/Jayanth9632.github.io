@@ -688,6 +688,20 @@
             <p><strong>Why it matters:</strong> Final images ship only runtime artifacts — no compilers, package managers, or build secrets — so Trivy scans a smaller surface and pods pull/start faster. Independent stage caching speeds CI when only app code changes, and lighter images help Kubernetes schedule and autoscale quicker during traffic spikes while cutting registry storage and egress costs.</p>
             <div class="tech-row"><span>Docker</span><span>Trivy</span><span>Alpine</span><span>Distroless</span><span>ArgoCD</span><span>EKS</span></div>
           </article>
+          <article class="project-card reveal">
+            <div class="project-card__top"><h3>Vector Search Infrastructure</h3><span class="badge">AI/ML</span></div>
+            <p><strong>Overview:</strong> Deployed and operated a production Qdrant vector database on EKS to power semantic search and retrieval for AI-driven applications.</p>
+            <p><strong>Architecture:</strong> Application embeddings → Qdrant (StatefulSet on EKS) → persistent EBS storage → HPA for query load → Prometheus metrics for query latency and index health.</p>
+            <p class="project-card__impact"><strong>Business Impact:</strong> Sub-second semantic search at scale; reliable uptime for AI-driven product features through proper resource limits and monitoring.</p>
+            <div class="tech-row"><span>Qdrant</span><span>EKS</span><span>Prometheus</span><span>AI/ML</span></div>
+          </article>
+          <article class="project-card reveal">
+            <div class="project-card__top"><h3>Workflow Automation Platform</h3><span class="badge">Automation</span></div>
+            <p><strong>Overview:</strong> Deployed and maintained n8n as a self-hosted workflow automation platform on Kubernetes to orchestrate AI/ML pipeline triggers and internal automations.</p>
+            <p><strong>Architecture:</strong> n8n on EKS → webhook/cron triggers → external API and LLM integrations → PostgreSQL for workflow state → Vault-backed credential storage.</p>
+            <p class="project-card__impact"><strong>Business Impact:</strong> Reduced manual operational toil by automating repetitive cross-service workflows; secured credentials through Vault instead of hardcoded secrets.</p>
+            <div class="tech-row"><span>n8n</span><span>Kubernetes</span><span>Vault</span><span>PostgreSQL</span></div>
+          </article>
         </div>
       </div>
     </section>
