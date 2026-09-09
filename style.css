@@ -1518,14 +1518,14 @@ html:not(.js-gsap) .skill-bar.is-animated span {
   font-weight: 600;
 }
 
-/* Below-fold sections: browser may skip paint until near viewport */
+/* Below-fold sections: browser may skip paint until near viewport.
+   Exclude #resume and #contact — content-visibility breaks GSAP ScrollTrigger
+   positioning for those sections, leaving their reveal elements stuck opacity:0. */
 @supports (content-visibility: auto) {
   #achievements,
   #monitoring,
   #learning,
-  #education,
-  #resume,
-  #contact {
+  #education {
     content-visibility: auto;
     contain-intrinsic-size: 1px 720px;
   }
