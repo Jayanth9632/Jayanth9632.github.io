@@ -139,6 +139,7 @@
         <li><a href="#skills" class="nav__link">Skills</a></li>
         <li><a href="#experience" class="nav__link">Experience</a></li>
         <li><a href="#projects" class="nav__link">Projects</a></li>
+        <li><a href="#pipeline" class="nav__link">Pipeline</a></li>
         <li><a href="#achievements" class="nav__link">Achievements</a></li>
         <li><a href="#monitoring" class="nav__link">Monitoring</a></li>
         <li><a href="#learning" class="nav__link">Learning</a></li>
@@ -687,6 +688,196 @@
             <p><strong>Why it matters:</strong> Final images ship only runtime artifacts — no compilers, package managers, or build secrets — so Trivy scans a smaller surface and pods pull/start faster. Independent stage caching speeds CI when only app code changes, and lighter images help Kubernetes schedule and autoscale quicker during traffic spikes while cutting registry storage and egress costs.</p>
             <div class="tech-row"><span>Docker</span><span>Trivy</span><span>Alpine</span><span>Distroless</span><span>ArgoCD</span><span>EKS</span></div>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE PIPELINE -->
+    <section class="section" id="pipeline">
+      <div class="container">
+        <header class="section__header reveal">
+          <p class="section__eyebrow">Live Pipeline</p>
+          <h2 class="section__title">CI/CD → deploy → observe → respond</h2>
+          <p class="section__desc">Closed-loop delivery: code push through GitOps to EKS, then metrics, alerts, and incident response feeding the next fix.</p>
+        </header>
+
+        <div class="pipeline reveal" aria-label="Animated CI/CD to incident response pipeline">
+          <!-- Desktop / tablet horizontal -->
+          <svg class="pipeline__svg pipeline__svg--desk" viewBox="0 0 1120 260" role="img" aria-hidden="true">
+            <defs>
+              <linearGradient id="pipeLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#326CE5"/>
+                <stop offset="70%" stop-color="#60A5FA"/>
+                <stop offset="100%" stop-color="#F6821F"/>
+              </linearGradient>
+              <filter id="pipeGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2.5" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            <!-- Forward path -->
+            <path id="pipeForward" class="pipeline__path" fill="none" stroke="url(#pipeLineGrad)" stroke-width="1.5"
+              d="M70 88 H1030"/>
+            <!-- Return loop: Incident → Git -->
+            <path id="pipeReturn" class="pipeline__path pipeline__path--return" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-dasharray="5 5" stroke-opacity="0.55"
+              d="M1030 108 C1030 190, 70 190, 70 108"/>
+
+            <!-- Nodes -->
+            <g class="pipe-node" style="--i:0" transform="translate(70,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">Git Push</text>
+              <text class="pipe-node__sub" y="14">developer commit</text>
+            </g>
+            <g class="pipe-node" style="--i:1" transform="translate(190,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">Jenkins</text>
+              <text class="pipe-node__sub" y="14">webhook build</text>
+            </g>
+            <g class="pipe-node" style="--i:2" transform="translate(310,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">Security</text>
+              <text class="pipe-node__sub" y="14">Trivy + SAST</text>
+            </g>
+            <g class="pipe-node" style="--i:3" transform="translate(430,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">Registry</text>
+              <text class="pipe-node__sub" y="14">GHCR push</text>
+            </g>
+            <g class="pipe-node" style="--i:4" transform="translate(550,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">ArgoCD</text>
+              <text class="pipe-node__sub" y="14">GitOps sync</text>
+            </g>
+            <g class="pipe-node" style="--i:5" transform="translate(670,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">EKS</text>
+              <text class="pipe-node__sub" y="14">pod rollout</text>
+            </g>
+            <g class="pipe-node" style="--i:6" transform="translate(790,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">Monitor</text>
+              <text class="pipe-node__sub" y="14">Prom → Grafana</text>
+            </g>
+            <g class="pipe-node" style="--i:7" transform="translate(910,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">Alerting</text>
+              <text class="pipe-node__sub" y="14">Slack / Email</text>
+            </g>
+            <g class="pipe-node pipe-node--loop" style="--i:8" transform="translate(1030,88)">
+              <rect x="-48" y="-28" width="96" height="56" rx="10"/>
+              <text class="pipe-node__title" y="-2">Incident</text>
+              <text class="pipe-node__sub" y="14">RCA → fix</text>
+            </g>
+
+            <text class="pipeline__loop-label" x="550" y="210">fix → commit → redeploy</text>
+
+            <!-- Pulses on forward path -->
+            <circle class="pipeline__pulse" r="4" filter="url(#pipeGlow)" fill="#60A5FA">
+              <animateMotion dur="14s" repeatCount="indefinite" path="M70 88 H1030"/>
+            </circle>
+            <circle class="pipeline__pulse" r="3.5" filter="url(#pipeGlow)" fill="#F6821F">
+              <animateMotion dur="14s" begin="4.5s" repeatCount="indefinite" path="M70 88 H1030"/>
+            </circle>
+            <circle class="pipeline__pulse" r="3" filter="url(#pipeGlow)" fill="#3FB950">
+              <animateMotion dur="14s" begin="9s" repeatCount="indefinite" path="M70 88 H1030"/>
+            </circle>
+            <!-- Pulse on return loop -->
+            <circle class="pipeline__pulse pipeline__pulse--return" r="3" filter="url(#pipeGlow)" fill="#93C5FD">
+              <animateMotion dur="14s" begin="12s" repeatCount="indefinite" path="M1030 108 C1030 190, 70 190, 70 108"/>
+            </circle>
+          </svg>
+
+          <!-- Mobile vertical -->
+          <svg class="pipeline__svg pipeline__svg--mobile" viewBox="0 0 320 780" role="img" aria-hidden="true">
+            <defs>
+              <linearGradient id="pipeLineGradM" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#326CE5"/>
+                <stop offset="70%" stop-color="#60A5FA"/>
+                <stop offset="100%" stop-color="#F6821F"/>
+              </linearGradient>
+              <filter id="pipeGlowM" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2.5" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            <path class="pipeline__path" fill="none" stroke="url(#pipeLineGradM)" stroke-width="1.5"
+              d="M160 40 V720"/>
+            <path class="pipeline__path pipeline__path--return" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-dasharray="5 5" stroke-opacity="0.55"
+              d="M175 720 C260 720, 260 40, 175 40"/>
+
+            <g class="pipe-node" style="--i:0" transform="translate(160,40)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">Git Push</text>
+              <text class="pipe-node__sub" y="13">developer commit</text>
+            </g>
+            <g class="pipe-node" style="--i:1" transform="translate(160,120)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">Jenkins Build</text>
+              <text class="pipe-node__sub" y="13">webhook trigger</text>
+            </g>
+            <g class="pipe-node" style="--i:2" transform="translate(160,200)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">Security Scan</text>
+              <text class="pipe-node__sub" y="13">Trivy + SAST</text>
+            </g>
+            <g class="pipe-node" style="--i:3" transform="translate(160,280)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">Registry Push</text>
+              <text class="pipe-node__sub" y="13">GHCR</text>
+            </g>
+            <g class="pipe-node" style="--i:4" transform="translate(160,360)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">ArgoCD Sync</text>
+              <text class="pipe-node__sub" y="13">GitOps deploy</text>
+            </g>
+            <g class="pipe-node" style="--i:5" transform="translate(160,440)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">EKS Cluster</text>
+              <text class="pipe-node__sub" y="13">pod rollout</text>
+            </g>
+            <g class="pipe-node" style="--i:6" transform="translate(160,520)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">Monitoring</text>
+              <text class="pipe-node__sub" y="13">Prom → Grafana</text>
+            </g>
+            <g class="pipe-node" style="--i:7" transform="translate(160,600)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">Alerting</text>
+              <text class="pipe-node__sub" y="13">Slack / Email</text>
+            </g>
+            <g class="pipe-node pipe-node--loop" style="--i:8" transform="translate(160,720)">
+              <rect x="-70" y="-22" width="140" height="44" rx="10"/>
+              <text class="pipe-node__title" y="-1">Incident Response</text>
+              <text class="pipe-node__sub" y="13">RCA → Git fix</text>
+            </g>
+
+            <circle class="pipeline__pulse" r="4" filter="url(#pipeGlowM)" fill="#60A5FA">
+              <animateMotion dur="14s" repeatCount="indefinite" path="M160 40 V720"/>
+            </circle>
+            <circle class="pipeline__pulse" r="3.5" filter="url(#pipeGlowM)" fill="#F6821F">
+              <animateMotion dur="14s" begin="4.5s" repeatCount="indefinite" path="M160 40 V720"/>
+            </circle>
+            <circle class="pipeline__pulse" r="3" filter="url(#pipeGlowM)" fill="#3FB950">
+              <animateMotion dur="14s" begin="9s" repeatCount="indefinite" path="M160 40 V720"/>
+            </circle>
+            <circle class="pipeline__pulse" r="3" filter="url(#pipeGlowM)" fill="#93C5FD">
+              <animateMotion dur="14s" begin="12s" repeatCount="indefinite" path="M175 720 C260 720, 260 40, 175 40"/>
+            </circle>
+          </svg>
+
+          <ol class="pipeline__legend">
+            <li><strong>Git Push</strong> — developer commits code</li>
+            <li><strong>Jenkins Build</strong> — triggered via webhook</li>
+            <li><strong>Security Scan</strong> — Trivy + SAST</li>
+            <li><strong>Registry Push</strong> — image to GHCR</li>
+            <li><strong>ArgoCD Sync</strong> — GitOps deploy</li>
+            <li><strong>EKS Cluster</strong> — pods across namespaces</li>
+            <li><strong>Monitoring</strong> — Prometheus → Grafana</li>
+            <li><strong>Alerting</strong> — AlertManager → Slack/Email</li>
+            <li><strong>Incident Response</strong> — RCA / runbook → fix in Git</li>
+          </ol>
         </div>
       </div>
     </section>
