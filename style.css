@@ -611,7 +611,6 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* Hero */
 .hero {
   position: relative;
-  min-height: 100vh;
   padding: calc(var(--header-h) + 2.5rem) 0 3.5rem;
   overflow: hidden;
   background:
